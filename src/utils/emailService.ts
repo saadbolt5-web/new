@@ -29,49 +29,89 @@ export class EmailService {
         department: formData.department,
         message: formData.message,
         phone: formData.phone || 'Not provided',
-        to_email: 'contact@saherflow.com',
-        reply_to: formData.email,
-        subject: `New Contact Form Submission from ${formData.name}`,
       };
 
       // Template parameters for user auto-reply
       const userTemplateParams = {
         to_name: formData.name,
         to_email: formData.email,
-        from_name: 'Saher Flow Solutions',
         user_message: formData.message,
         department: formData.department,
       };
 
+      console.log('Sending admin notification with params:', adminTemplateParams);
+      console.log('Sending user auto-reply with params:', userTemplateParams);
+
       // Send admin notification
-      console.log('Sending admin notification...');
       const adminResponse = await emailjs.send(
         EMAILJS_SERVICE_ID,
         EMAILJS_TEMPLATE_ID_CONTACT,
         adminTemplateParams
       );
 
+      console.log('Admin notification sent successfully:', adminResponse);
+
       // Send user auto-reply
-      console.log('Sending user auto-reply...');
       const userResponse = await emailjs.send(
         EMAILJS_SERVICE_ID,
         EMAILJS_TEMPLATE_ID_AUTO_REPLY,
         userTemplateParams
       );
 
-      console.log('Admin notification sent:', adminResponse);
-      console.log('User auto-reply sent:', userResponse);
+      console.log('User auto-reply sent successfully:', userResponse);
 
       return { 
         success: adminResponse?.status === 200 && userResponse?.status === 200 
       };
     } catch (error) {
       console.error('Failed to send contact form:', error);
+      
+      // More detailed error logging
+      if (error && typeof error === 'object' && 'text' in error) {
+        console.error('EmailJS Error Details:', error.text);
+      }
+      
       return { 
         success: false, 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+        error: error instanceof Error ? error.message : 'Failed to send email. Please check your EmailJS configuration.' 
       };
     }
+  }
+
+  /**
+   * Send welcome email to new subscriber (placeholder for newsletter functionality)
+   */
+  static async sendWelcomeEmail(email: string): Promise<boolean> {
+    console.log('Welcome email functionality not implemented yet for:', email);
+    return true; // Return true to avoid breaking the newsletter subscription flow
+  }
+
+  /**
+   * Notify subscribers about new article (placeholder for newsletter functionality)
+   */
+  static async notifySubscribersNewArticle(article: {
+    title: string;
+    excerpt: string;
+    url: string;
+    type: 'news' | 'blog';
+  }): Promise<{ success: number; failed: number }> {
+    console.log('Article notification functionality not implemented yet for:', article.title);
+    return { success: 0, failed: 0 }; // Return empty result to avoid breaking the notification flow
+  }
+
+  /**
+   * Notify all subscribers (placeholder for newsletter functionality)
+   */
+  static async notifyAllSubscribers(
+    title: string,
+    excerpt: string,
+    url: string,
+    subscriberEmails: string[],
+    author: string,
+    publishedDate: string
+  ): Promise<{ success: number; failed: number }> {
+    console.log('Bulk notification functionality not implemented yet for:', title);
+    return { success: 0, failed: 0 }; // Return empty result to avoid breaking the notification flow
   }
 }
 

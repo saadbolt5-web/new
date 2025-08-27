@@ -41,7 +41,7 @@ const Contact: React.FC = () => {
       
       if (result.success) {
         setSubmitStatus('success');
-        setFormData({ name: '', email: '', department: 'RFT', message: '', phone: '' });
+        setFormData({ name: '', email: '', department: '', message: '', phone: '' });
       } else {
         setSubmitStatus('error');
         setErrorMessage(result.error || 'Failed to send message. Please try again.');
@@ -179,7 +179,7 @@ const Contact: React.FC = () => {
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-navy-500 dark:focus:ring-yellow-500 focus:border-transparent transition-colors duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   >
-                    <option value="RFT">Request For Quote</option>
+                    <option value="RFQ">Request For Quote</option>
                     <option value="sales">Sales Inquiry</option>
                     <option value="technical">Technical Support</option>
                     <option value="general">General Inquiry</option>
