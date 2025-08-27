@@ -95,74 +95,92 @@ The system is designed to be easily extensible with features like:
 
 ## Email System Setup with EmailJS
 
-The website now uses EmailJS for a proper email system where:
-- **Subscribers receive welcome emails and notifications**
-- **You only receive admin notifications about new subscribers and contact forms**
+The website now uses a hybrid email system combining EmailJS and Web3Forms:
+- **EmailJS (Free - 200 emails/month)**: Contact forms, newsletter, confirmations
+- **Web3Forms (Completely Free)**: Career applications with file uploads
+- **Smart email routing**: Different emails for different purposes
 
 ### Setup Steps:
 
-1. **Create EmailJS Account**
-   - Go to [EmailJS.com](https://www.emailjs.com/) and create a free account
-   - Verify your email and log in
+## Complete Free Email Solution
 
-2. **Set Up Email Service**
-   - Add your email provider (Gmail, Outlook, etc.)
-   - Get your Service ID
+### 1. EmailJS Setup (Free - 200 emails/month)
+- Create account at [emailjs.com](https://emailjs.com)
+- Add your email service (Gmail, Outlook, etc.)
+- Create 2 templates with IDs: `template_8ex3j33` and `template_e4oorbp`
+- Get your Service ID and Public Key
 
-3. **Create Email Templates**
-   - Welcome email template (ID: `template_welcome`)
-   - New article notification template (ID: `template_new_article`)  
-   - Admin notification template (ID: `template_admin_notification`)
+### 2. Web3Forms Setup (Completely Free)
+- Go to [web3forms.com](https://web3forms.com)
+- Enter career@saherflow.com and get access key
+- Supports unlimited emails and file uploads
 
-4. **Get Your Public Key**
-   - Copy your public key from Account settings
+### 3. Update Configuration
+Replace these values in `src/utils/emailService.ts`:
+```typescript
+const EMAILJS_SERVICE_ID = 'service_yu0nzx3';
+const EMAILJS_PUBLIC_KEY = 'B4GXKUs8SowruUqKW';
+```
 
-5. **Update Configuration**
-   - Edit `src/utils/emailService.ts`
-   - Replace placeholder values with your actual EmailJS credentials:
-   ```typescript
-   const EMAILJS_SERVICE_ID = 'your_service_id_here';
-   const EMAILJS_PUBLIC_KEY = 'your_public_key_here';
-   ```
-   - Update admin email in components to your actual email
+And in career application section:
+```typescript
+adminFormData.append('access_key', 'c3660cda-6910-4f7d-ad61-881517115e4a');
+```
 
 ### How It Works:
 
-**Newsletter Subscription:**
-1. User fills subscription form
-2. User receives welcome email instantly
-3. You receive admin notification: "New subscriber: email@example.com"
+### Email Flow:
 
-**Contact Form:**
-1. User submits contact form
-2. You receive the contact inquiry
-3. User sees confirmation message
+**1. Contact Forms:**
+- User submits → You receive at contact@saherflow.com
+- User gets instant confirmation email
+- Handles: General inquiries, sales, technical support
 
-**New Article Notifications:**
-1. When new articles are published
-2. System can notify all subscribers (requires subscriber database)
-3. Each subscriber gets personalized email
+**2. Newsletter Subscription:**
+- User subscribes → Checks for duplicates
+- If new: Welcome email sent + admin notification
+- If duplicate: "Already subscribed" message
+- Auto-notifications when new articles published
+
+**3. Career Applications:**
+- User applies → Resume sent to career@saherflow.com
+- User gets confirmation email
+- Supports file uploads (PDF, DOC, DOCX)
+
+**4. Auto Article Notifications:**
+- System checks for new articles every 5 minutes
+- Automatically emails all subscribers
+- Works for both news and blog posts
+- Tracks what's already been sent
 
 ### Features:
 
-- ✅ **Proper email flow** - subscribers get emails, you get notifications
-- 📧 **Welcome emails** for new subscribers
-- 🔔 **Article notifications** to subscribers
-- 📊 **Admin notifications** for new subscribers and contact forms
-- 🛡️ **No spam** - clean, professional emails
-- 📱 **Mobile-friendly** forms
-- 🎯 **Personalized** email content
-- 🔄 **Error handling** and validation
+- ✅ **Completely Free**: No monthly costs, no server required
+- 📧 **Smart Email Routing**: Different emails for different purposes
+- 🔔 **Auto Notifications**: Subscribers get notified of new content
+- 📎 **File Support**: Resume uploads for job applications
+- 🛡️ **Duplicate Prevention**: Won't spam existing subscribers
+- 📱 **Mobile Friendly**: All forms work on mobile
+- 🎯 **Instant Confirmations**: Users get immediate feedback
+- 🔄 **Error Handling**: Graceful failure handling
 
-### EmailJS Free Plan:
-- 200 emails per month
-- All features included
-- No credit card required
+### Email Addresses Used:
+- **contact@saherflow.com**: Contact forms, newsletter admin notifications
+- **career@saherflow.com**: Job applications with resumes
 
-For higher volume, upgrade to paid plans for unlimited emails.
+### Limits:
+- **EmailJS**: 200 emails/month (free tier)
+- **Web3Forms**: Unlimited emails and files (completely free)
+- **Combined**: Handles all your needs without cost
 
-### Setup Guide:
-Visit the Subscribe page (`/subscribe`) to see the complete setup guide with step-by-step instructions and template examples.
+### What Happens:
+
+1. **Contact Form**: User message → contact@saherflow.com + user confirmation
+2. **Newsletter**: Welcome email + admin notification + auto article alerts  
+3. **Job Application**: Resume → career@saherflow.com + applicant confirmation
+4. **New Articles**: Auto-email to all subscribers (news & blogs)
+
+This solution gives you enterprise-level email functionality completely free!
 
 ### Newsletter Features:
 
@@ -252,4 +270,4 @@ The careers page also has a functional application form. To receive job applicat
 - Cover letter
 - Resume/CV file attachment
 
-This allows you to receive complete job applications with all candidate data and documents directly in your email inbox.   
+This allows you to receive complete job applications with all candidate data and documents directly in your email inbox.

@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
-import { useForm, ValidationError } from '@formspree/react';
-import { Phone, Mail, MapPin, Send, Clock, Globe } from 'lucide-react';
+import { Phone, Mail, MapPin, Send, Clock } from 'lucide-react';
+import { EmailService } from '../utils/emailService';
 import SEOHead from './SEOHead';
 
 const Contact: React.FC = () => {
-  const [state, handleSubmit] = useForm("xzzvwrgz"); // You'll need to replace this with your actual Formspree form ID
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    department: 'sales',
-    message: ''
+    department: 'RFT',
+    message: '',
+    phone: ''
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -23,22 +26,45 @@ const Contact: React.FC = () => {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Create FormData object for Formspree
-    const formDataToSubmit = new FormData();
-    formDataToSubmit.append('name', formData.name);
-    formDataToSubmit.append('email', formData.email);
-    formDataToSubmit.append('department', formData.department);
-    formDataToSubmit.append('message', formData.message);
-    formDataToSubmit.append('_subject', `New Contact Form Submission from ${formData.name}`);
-    
-    // Submit to Formspree
-    const result = await handleSubmit(formDataToSubmit);
-    
-    if (state.succeeded) {
-      setFormData({ name: '', email: '', department: 'sales', message: '' });
-      alert('Thank you for your message! We\'ll get back to you soon.');
+    if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) {
+      setErrorMessage('Please fill in all required fields');
+      setSubmitStatus('error');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitStatus('idle');
+    setErrorMessage('');
+
+    try {
+      const result = await EmailService.sendContactForm(formData);
+      
+      if (result.success) {
+        setSubmitStatus('success');
+        setFormData({ name: '', email: '', department: 'RFT', message: '', phone: '' });
+      } else {
+        setSubmitStatus('error');
+        setErrorMessage(result.error || 'Failed to send message. Please try again.');
+      }
+    } catch (error) {
+      console.error('Contact form error:', error);
+      setSubmitStatus('error');
+      setErrorMessage('Failed to send message. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
+  // Reset status after 5 seconds
+  React.useEffect(() => {
+    if (submitStatus !== 'idle') {
+      const timer = setTimeout(() => {
+        setSubmitStatus('idle');
+        setErrorMessage('');
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [submitStatus]);
 
   return (
     <>
@@ -108,12 +134,6 @@ const Contact: React.FC = () => {
                       className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-navy-500 dark:focus:ring-yellow-500 focus:border-transparent transition-colors duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                       placeholder="Your full name"
                     />
-                    <ValidationError 
-                      prefix="Name" 
-                      field="name"
-                      errors={state.errors}
-                      className="text-red-500 text-sm mt-1"
-                    />
                   </div>
                   
                   <div>
@@ -130,13 +150,22 @@ const Contact: React.FC = () => {
                       className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-navy-500 dark:focus:ring-yellow-500 focus:border-transparent transition-colors duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                       placeholder="your.email@company.com"
                     />
-                    <ValidationError 
-                      prefix="Email" 
-                      field="email"
-                      errors={state.errors}
-                      className="text-red-500 text-sm mt-1"
-                    />
                   </div>
+                </div>
+
+                <div>
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-navy-500 dark:focus:ring-yellow-500 focus:border-transparent transition-colors duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    placeholder="+966 XX XXX XXXX"
+                  />
                 </div>
 
                 <div>
@@ -150,18 +179,12 @@ const Contact: React.FC = () => {
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-navy-500 dark:focus:ring-yellow-500 focus:border-transparent transition-colors duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   >
-                     <option value="RFT">Request For Quote</option>
+                    <option value="RFT">Request For Quote</option>
                     <option value="sales">Sales Inquiry</option>
                     <option value="technical">Technical Support</option>
                     <option value="general">General Inquiry</option>
                     <option value="partnership">Partnership</option>
                   </select>
-                  <ValidationError 
-                    prefix="Department" 
-                    field="department"
-                    errors={state.errors}
-                    className="text-red-500 text-sm mt-1"
-                  />
                 </div>
 
                 <div>
@@ -178,24 +201,18 @@ const Contact: React.FC = () => {
                     className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-navy-500 dark:focus:ring-yellow-500 focus:border-transparent transition-colors duration-200 resize-vertical bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     placeholder="Tell us about your project or inquiry..."
                   />
-                  <ValidationError 
-                    prefix="Message" 
-                    field="message"
-                    errors={state.errors}
-                    className="text-red-500 text-sm mt-1"
-                  />
                 </div>
 
                 <button
                   type="submit"
-                  disabled={state.submitting}
+                  disabled={isSubmitting}
                   className="w-full bg-navy-900 dark:bg-yellow-500 text-white dark:text-navy-900 py-4 px-8 rounded-lg font-semibold text-lg hover:bg-navy-800 dark:hover:bg-yellow-400 transition-colors duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Send size={20} />
-                  {state.submitting ? 'Sending...' : 'Send Message'}
+                  {isSubmitting ? 'Sending...' : 'Send Message'}
                 </button>
                 
-                {state.succeeded && (
+                {submitStatus === 'success' && (
                   <div className="bg-green-100 dark:bg-green-900/30 border border-green-500/30 rounded-lg p-4 text-center">
                     <p className="text-green-800 dark:text-green-400 font-medium">
                       ✅ Message sent successfully! We'll get back to you within 24 hours.
@@ -203,10 +220,10 @@ const Contact: React.FC = () => {
                   </div>
                 )}
                 
-                {state.errors && state.errors.length > 0 && (
+                {submitStatus === 'error' && (
                   <div className="bg-red-100 dark:bg-red-900/30 border border-red-500/30 rounded-lg p-4 text-center">
                     <p className="text-red-800 dark:text-red-400 font-medium">
-                      ❌ There was an error sending your message. Please try again.
+                      ❌ {errorMessage || 'There was an error sending your message. Please try again.'}
                     </p>
                   </div>
                 )}
@@ -215,7 +232,7 @@ const Contact: React.FC = () => {
 
             {/* Contact Information */}
             <div className="space-y-8">
-              {/* Office Info - Updated for Saudi Arabia */}
+              {/* Office Info */}
               <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8">
                 <h3 className="text-2xl font-bold text-navy-900 dark:text-white mb-6">Get in Touch</h3>
                 
@@ -269,7 +286,7 @@ const Contact: React.FC = () => {
                 </div>
               </div>
 
-              {/* Interactive Map - Updated for Saudi Arabia */}
+              {/* Interactive Map */}
               <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
                 <div className="aspect-[4/3]">
                   <iframe
@@ -284,7 +301,6 @@ const Contact: React.FC = () => {
                   />
                 </div>
               </div>
-
             </div>
           </div>
         </div>

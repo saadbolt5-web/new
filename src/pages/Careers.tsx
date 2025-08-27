@@ -4,7 +4,7 @@ import { MapPin, Briefcase, Clock, Users, Award, Zap } from 'lucide-react';
 import SEOHead from '../components/SEOHead';
 
 const Careers: React.FC = () => {
-  const [state, handleSubmit] = useForm("mnnzrdzo");
+  const [state, handleSubmit] = useForm("xldwenjz"); // JobApplication - SFS endpoint
   const [selectedJob, setSelectedJob] = useState<string | null>(null);
   const [applicationData, setApplicationData] = useState({
     name: '',

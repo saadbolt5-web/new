@@ -1,130 +1,80 @@
-// Simple EmailJS service for newsletter subscriptions
+// EmailJS service for contact form only
 import emailjs from '@emailjs/browser';
 
-// EmailJS Configuration - You'll replace these with your actual values
-const EMAILJS_SERVICE_ID = 'service_azqbh9e';
-const EMAILJS_TEMPLATE_ID_WELCOME = 'template_8ex3j33';
-const EMAILJS_TEMPLATE_ID_ARTICLE = 'template_e4oorbp';
-const EMAILJS_PUBLIC_KEY = '8tFc9GCXL3OfQUv5c';
+// EmailJS Configuration
+const EMAILJS_SERVICE_ID = 'service_78g1aha';
+const EMAILJS_TEMPLATE_ID_CONTACT = 'template_zodftxu'; // Admin notification
+const EMAILJS_TEMPLATE_ID_AUTO_REPLY = 'template_fqz6jme'; // User auto-reply
+const EMAILJS_PUBLIC_KEY = 'YlRIA-4TEOH3k-NgJ';
 
 // Initialize EmailJS
 emailjs.init(EMAILJS_PUBLIC_KEY);
 
 export class EmailService {
   /**
-   * Send welcome email to new subscriber
+   * Send contact form submission to admin and auto-reply to user
    */
-  static async sendWelcomeEmail(subscriberEmail: string): Promise<boolean> {
-    const firstName = subscriberEmail.split('@')[0];
-
-    const templateParams = {
-      email: subscriberEmail,
-      to_name: firstName,
-      from_name: 'Saher Flow Solutions',
-      subscriber_name: firstName,
-      company_name: 'Saher Flow Solutions',
-      website_url: window.location.origin,
-    };
-
+  static async sendContactForm(formData: {
+    name: string;
+    email: string;
+    department: string;
+    message: string;
+    phone?: string;
+  }): Promise<{ success: boolean; error?: string }> {
     try {
-      console.log('Sending welcome email to:', subscriberEmail);
-      const response = await emailjs.send(
+      // Template parameters for admin notification
+      const adminTemplateParams = {
+        from_name: formData.name,
+        from_email: formData.email,
+        department: formData.department,
+        message: formData.message,
+        phone: formData.phone || 'Not provided',
+        to_email: 'contact@saherflow.com',
+        reply_to: formData.email,
+        subject: `New Contact Form Submission from ${formData.name}`,
+      };
+
+      // Template parameters for user auto-reply
+      const userTemplateParams = {
+        to_name: formData.name,
+        to_email: formData.email,
+        from_name: 'Saher Flow Solutions',
+        user_message: formData.message,
+        department: formData.department,
+      };
+
+      // Send admin notification
+      console.log('Sending admin notification...');
+      const adminResponse = await emailjs.send(
         EMAILJS_SERVICE_ID,
-        EMAILJS_TEMPLATE_ID_WELCOME,
-        templateParams
+        EMAILJS_TEMPLATE_ID_CONTACT,
+        adminTemplateParams
       );
-      console.log('Welcome email sent successfully:', response);
-      return response?.status === 200;
-    } catch (error) {
-      console.error('Failed to send welcome email:', error);
-      return false;
-    }
-  }
 
-  /**
-   * Send new article notification to subscriber
-   */
-  static async sendArticleNotification(
-    subscriberEmail: string,
-    articleTitle: string,
-    articleExcerpt: string,
-    articleUrl: string
-  ): Promise<boolean> {
-    const firstName = subscriberEmail.split('@')[0];
-    const fullArticleUrl = `${window.location.origin}${articleUrl}`;
-
-    const templateParams = {
-      email: subscriberEmail,
-      to_name: firstName,
-      from_name: 'Saher Flow Solutions',
-      subscriber_name: firstName,
-      article_title: articleTitle,
-      article_excerpt: articleExcerpt,
-      article_url: fullArticleUrl,
-      company_name: 'Saher Flow Solutions',
-      website_url: window.location.origin,
-    };
-
-    try {
-      console.log('Sending article notification to:', subscriberEmail);
-      const response = await emailjs.send(
+      // Send user auto-reply
+      console.log('Sending user auto-reply...');
+      const userResponse = await emailjs.send(
         EMAILJS_SERVICE_ID,
-        EMAILJS_TEMPLATE_ID_ARTICLE,
-        templateParams
+        EMAILJS_TEMPLATE_ID_AUTO_REPLY,
+        userTemplateParams
       );
-      console.log('Article notification sent successfully:', response);
-      return response?.status === 200;
+
+      console.log('Admin notification sent:', adminResponse);
+      console.log('User auto-reply sent:', userResponse);
+
+      return { 
+        success: adminResponse?.status === 200 && userResponse?.status === 200 
+      };
     } catch (error) {
-      console.error('Failed to send article notification:', error);
-      return false;
+      console.error('Failed to send contact form:', error);
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      };
     }
-  }
-
-  /**
-   * Notify all subscribers about new article
-   */
-  static async notifyAllSubscribers(
-    articleTitle: string,
-    articleExcerpt: string,
-    articleUrl: string,
-    subscriberEmails: string[],
-    fromName: string = 'Saher Flow Solutions Team',
-    publishedDate: string = new Date().toLocaleDateString()
-  ): Promise<{ success: number; failed: number }> {
-    let success = 0;
-    let failed = 0;
-
-    console.log(`Notifying ${subscriberEmails.length} subscribers about new article:`, articleTitle);
-
-    for (const email of subscriberEmails) {
-      try {
-        const sent = await this.sendArticleNotification(
-          email,
-          articleTitle,
-          articleExcerpt,
-          articleUrl
-        );
-        
-        if (sent) {
-          success++;
-        } else {
-          failed++;
-        }
-        
-        // Add small delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 200));
-      } catch (error) {
-        console.error(`Failed to notify subscriber ${email}:`, error);
-        failed++;
-      }
-    }
-
-    console.log(`Notification complete: ${success} successful, ${failed} failed`);
-    return { success, failed };
   }
 }
 
 export const validateEmailJSConfig = (): boolean => {
-  // Since you're using your actual credentials, always return true
-  return true;
+  return !!(EMAILJS_SERVICE_ID && EMAILJS_TEMPLATE_ID_CONTACT && EMAILJS_TEMPLATE_ID_AUTO_REPLY && EMAILJS_PUBLIC_KEY);
 };

@@ -15,7 +15,7 @@ const NewsNotificationSystem: React.FC<NewsNotificationSystemProps> = ({
   articleExcerpt,
   articleImage
 }) => {
-  const [state, handleSubmit] = useForm("mnnzrdzo"); // Replace with your notification form ID
+  const [state, handleSubmit] = useForm("mdklozew"); // Newsletter endpoint
   const [isNotifying, setIsNotifying] = useState(false);
 
   const notifySubscribers = async () => {
